@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <utility>
 #include <float.h>
+#include <cmath>
 
 struct Matrix{
 public:
@@ -12,19 +13,8 @@ public:
         data.resize(rows*columns);
     }
     /*
-    Goal of Matrix:
-    Matrix y Done
-    Append Information with row, col Done
-    Add two matrixes together Done
-    Multiply by a Scalar Done
-    Subtract two matrixes together (This can be done by scalar by -1 then add) Done
-    Matrix Multiplication Done
-    Transpose Done
-    
-    Square Matrices:
-    Det DONE
-    Inverse 
-     */
+    append(row, col, value)
+    */
     void append(size_t row, size_t col, double value){
         if(row >= rows || col >= columns){
             throw std::out_of_range("You are trying to insert an element that doesn't exist");
@@ -131,7 +121,9 @@ public:
     }
     
     /*We could do cofactor expansion where we just go A*det(below) - B det(below) and stuff (really easy recursive implementation) but thats O(N!)
-    So, let's instead learn about LU decompositon real quick and then implement that*/
+    So, let's instead learn about LU decompositon real quick and then implement that
+    Okay so I implemented a really rudimentary version of this but I don't have row swaps but :(
+    */
     std::pair<Matrix, Matrix> LU_Decomposition() const{
         if(rows != columns){
             throw(std::invalid_argument("You need a square matrix to take a determinant"));
@@ -160,8 +152,6 @@ public:
     }
 
     double det() const{
-        //Okay I'm back - So I learned that the det(triagular matrix) = product of diagonals <- If u forget why: work thru with an example of a 3x3 then generalize using factor expansion
-        //Okay so now we need to implement this strategy
         if(rows != columns){
             throw(std::invalid_argument("You need a square matrix to take a determinant"));
         }
@@ -177,9 +167,42 @@ public:
         }
     }
 
+    Matrix minor(size_t remove_row, size_t remove_col) const{
+        if(remove_row >= rows){
+            throw(std::invalid_argument("The row is greater than total rows"));
+        }
+        if(remove_col >= columns){
+            throw(std::invalid_argument("The column is greater than total columns"));
+        }
+        Matrix temp(rows - 1, columns - 1);
+        for(size_t row{}; row < rows; row++){
+            for(size_t col{}; col < columns; col++){
+                //if we get to remove_row or remove_col we need to subtract one
+                if(row == remove_row || col == remove_col){
+                    continue;
+                }
+                temp.append((row > remove_row ? row-1 : row), (col > remove_col ? col-1 : col), get(row, col));
+            }
+        }
+        return temp;
+    }
+
+    Matrix cof() const{
+        Matrix cofactor(rows, columns);
+        for(size_t row{}; row < rows; row++){
+            for(size_t col{}; col < columns; col++){
+                double sign = (double) pow(-1.0, (row & 1) + (col & 1));
+                double determinant = minor(row, col).det();
+                cofactor.append(row, col, sign * determinant);
+            }
+        }
+        return cofactor;
+    }
+
     Matrix adj() const{
-        //TO BE IMPLEMENTED
-        return Matrix(0,0);
+        //Cofactor matrix
+        Matrix temp = cof();
+        return temp.T();
     }
 
     Matrix inv() const{
@@ -193,5 +216,5 @@ public:
         }
         return ((1 / determinant) * adj());
     }
-
+    
 };
