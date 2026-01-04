@@ -10,7 +10,9 @@
         "-Wall",
         "-Wextra",
         "-g3",
-        "${file}",
+        "Vector Visualizer/main.cpp",
+        "cameras/TargetCamera.cpp",
+        "-Icameras",
         "-I/opt/homebrew/include",
         "-L/opt/homebrew/lib",
         "-lglfw",
@@ -25,7 +27,8 @@
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "problemMatcher": ["$gcc"]
     }
   ]
 }
