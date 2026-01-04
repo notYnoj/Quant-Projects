@@ -54,23 +54,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
     }
 }
 
-void processWSADInput(GLFWwindow* window, TargetCamera& cam, double time){
-    double velocity = cam.speed.x * time;
-    //moving using the W S A D keys
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cam.Position = cam.Position + (cam.front * velocity);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cam.Position = cam.Position - (cam.front * velocity);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cam.Position = cam.Position - (cam.right * velocity);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cam.Position = cam.Position + (cam.right * velocity);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        cam.Position = cam.Position + (cam.normalUp * velocity);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        cam.Position = cam.Position - (cam.normalUp * velocity);
-}
-
 const char* vertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
@@ -281,7 +264,6 @@ int main() {
         double curTime = glfwGetTime();
         double time = curTime - prevTime;
         prevTime = curTime;
-        processWSADInput(window, cam, time);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Vec3D target = cam.Position + cam.front;
