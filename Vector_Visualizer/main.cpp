@@ -1,5 +1,6 @@
 #include "../Math Algorithms/3DVector.hpp"
 #include "../Math Algorithms/matrix.hpp"
+#include "../cameras/target.hpp"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl3.h>
@@ -8,60 +9,6 @@
 #include <vector>
 #include <cmath>
 
-
-struct Camera{
-    Vec3D target;       
-    double radius;        
-    double theta;        
-    double phi;        
-    Vec3D Position;
-    Vec3D front;
-    Vec3D up;
-    Vec3D right;
-    Vec3D normalUp{0,1,0};
-    double speed;
-    double sens;
-};
-
-double toRad(double degree){
-    return (degree * (M_PI / 180.0));
-}
-
-void updateCamera(Camera& cam){
-    double thetaRad = toRad(cam.theta);
-    double phiRad = toRad(cam.phi);
-
-    cam.Position.x() = cam.target.x() + cam.radius * sin(phiRad) * cos(thetaRad);
-    cam.Position.y() = cam.target.y() + cam.radius * cos(phiRad);
-    cam.Position.z() = cam.target.z() + cam.radius * sin(phiRad) * sin(thetaRad);
-
-    cam.front = (cam.target - cam.Position).normal();
-
-    cam.right = cam.front.cross(cam.normalUp);
-    if(cam.right.magnitude() < 0.001){
-        cam.right = Vec3D(1,0,0);
-    }else{
-        cam.right = cam.right.normal();
-    }
-
-    cam.up = cam.right.cross(cam.front);
-    if(cam.up.magnitude() < 0.001){
-        cam.up = Vec3D(0,1,0);
-    }else{
-        cam.up = cam.up.normal();
-    }
-
-}
-
-void initCamera(Camera& cam){
-    cam.target = Vec3D(0, 0, 0);
-    cam.radius = 5.0;             
-    cam.theta = 0.0;              
-    cam.phi = 90.0;            
-    cam.speed = 2.0;
-    cam.sens = 0.3;
-    updateCamera(cam);
-}
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     static bool first_mouse = true;
@@ -79,36 +26,36 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     prevY = ypos;
     
     //use glfwGetWindowUserPointer cuz the mouse_callback has to be really specific lol bascially js returns cur camera
-    Camera* cam = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    TargetCamera* cam = static_cast<TargetCamera*>(glfwGetWindowUserPointer(window));
     if(cam){
-        xoffset *= cam->sens;
-        yoffset *= cam->sens;
-        cam->theta += xoffset;   
-        cam->phi += yoffset;     
+        xoffset *= cam->sens.x;
+        yoffset *= cam->sens.x;
+        cam->theta.x += xoffset;   
+        cam->phi.x += yoffset;     
         
-        if(cam->phi > 179.0) cam->phi = 179.0;
-        if(cam->phi < 1.0) cam->phi = 1.0;
+        if(cam->phi.x > 179.0) cam->phi.x = 179.0;
+        if(cam->phi.x < 1.0) cam->phi.x = 1.0;
         
         
-        if(cam->theta > 360.0) cam->theta -= 360.0;
-        if(cam->theta < 0.0) cam->theta += 360.0;
+        if(cam->theta.x > 360.0) cam->theta.x -= 360.0;
+        if(cam->theta.x < 0.0) cam->theta.x += 360.0;
         
-        updateCamera(*cam);
+        cam->updateCamera();
     }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
-    Camera* cam = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    TargetCamera* cam = static_cast<TargetCamera*>(glfwGetWindowUserPointer(window));
     if(cam){
-        cam->radius -= yoffset * 0.25; 
-        if(cam->radius < 1.0) cam->radius = 1.0;
-        if(cam->radius > 20.0) cam->radius = 20.0;
-        updateCamera(*cam);
+        cam->radius.x -= yoffset * 0.25; 
+        if(cam->radius.x < 1.0) cam->radius.x = 1.0;
+        if(cam->radius.x > 20.0) cam->radius.x = 20.0;
+        cam->updateCamera();
     }
 }
 
-void processWSADInput(GLFWwindow* window, Camera& cam, double time){
-    double velocity = cam.speed * time;
+void processWSADInput(GLFWwindow* window, TargetCamera& cam, double time){
+    double velocity = cam.speed.x * time;
     //moving using the W S A D keys
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cam.Position = cam.Position + (cam.front * velocity);
@@ -307,21 +254,27 @@ int main() {
     }
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, key_callback);
+
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
     printf("GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
     glEnable(GL_DEPTH_TEST);
     GLuint shaderProgram = createShaderProgram();
     
     GridData grid = createGrid(10.0f, 20);
-    Camera cam;
-    initCamera(cam);
+    TargetCamera cam(
+        {0, 0, 0},
+        Radius{10.0},
+        Theta{0.0},
+        Phi{90.0},
+        Speed{2.0},
+        Sens{0.3}
+    );
     double prevTime = 0.0;
     //Basically we can use our mouse after this I think
     glfwSetWindowUserPointer(window, &cam);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    Matrix projection = createPerspectiveMatrix(toRad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
+    Matrix projection = createPerspectiveMatrix((45.0f * (M_PI / 180.0)), 800.0f / 600.0f, 0.1f, 100.0f);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
