@@ -18,6 +18,7 @@
         "-framework", "Cocoa",
         "-framework", "IOKit",
         "-framework", "CoreVideo",
+        "-framework", "CoreFoundation",
         "-o",
         "${workspaceFolder}/main"
       ],
