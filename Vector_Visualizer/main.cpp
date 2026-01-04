@@ -24,10 +24,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     double yoffset = prevY - ypos;
     prevX = xpos;
     prevY = ypos;
-    
-    //use glfwGetWindowUserPointer cuz the mouse_callback has to be really specific lol bascially js returns cur camera
+    int lmbPressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+
     TargetCamera* cam = static_cast<TargetCamera*>(glfwGetWindowUserPointer(window));
-    if(cam){
+    if(cam && lmbPressed){
         xoffset *= cam->sens.x;
         yoffset *= cam->sens.x;
         cam->theta.x += xoffset;   
