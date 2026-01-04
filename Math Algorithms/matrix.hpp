@@ -1,19 +1,24 @@
+#ifndef MATRIX_HPP
+#define MATRIX_HPP
+
 #include <iostream>
 #include <vector>
 #include <stdexcept>
 #include <utility>
 #include <float.h>
 #include <cmath>
+#include "3DVector.hpp"
 
 struct Matrix{
 public:
     size_t rows, columns;
     std::vector<double> data;
+    //(rows, cols) <- arguments
     Matrix(const size_t& _rows, const size_t& _columns) : rows(_rows), columns(_columns) {
         data.resize(rows*columns);
     }
     /*
-    append(row, col, value)
+    append(row, col, value) 0 Indexed
     */
     void append(size_t row, size_t col, double value){
         if(row >= rows || col >= columns){
@@ -217,4 +222,43 @@ public:
         return ((1 / determinant) * adj());
     }
 
+    void print() const {
+        for(size_t i = 0; i < rows; i++) {
+            for(size_t j = 0; j < columns; j++) {
+                std::cout << get(i, j) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    static Matrix lookAt(const Vec3D& eye, const Vec3D& focus, const Vec3D& up){
+        //Let F = focus - eye
+        Vec3D F = focus - eye;
+        //Normalize it 
+        F = F.normal();
+        Vec3D normalUP = up.normal();
+        Vec3D s = F.cross(normalUP);
+        Vec3D u = s.normal().cross(F);
+        Matrix ans(4, 4);
+        ans.append(0,0,s.x());
+        ans.append(0,1,s.y());
+        ans.append(0,2,s.z());
+        ans.append(0,3,-1*(s*eye));
+        ans.append(1,0,u.x());
+        ans.append(1,1,u.y());
+        ans.append(1,2,u.z());
+        ans.append(1,3,-1*(u*eye));
+        ans.append(2,0,-1*F.x());
+        ans.append(2,1,-1*F.y());
+        ans.append(2,2,-1*F.z());
+        ans.append(2,3,F*eye);
+        ans.append(3,0,0);
+        ans.append(3,1,0);
+        ans.append(3,2,0);
+        ans.append(3,3,1);
+        return ans;
+    }
+
 };
+
+#endif
