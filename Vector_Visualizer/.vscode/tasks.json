@@ -2,33 +2,45 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build GLFW project",
+      "label": "Build Vector Visualizer",
       "type": "shell",
-      "command": "g++",
+      "command": "clang++",
       "args": [
         "-std=c++17",
         "-Wall",
         "-Wextra",
         "-g3",
-        "Vector Visualizer/main.cpp",
-        "cameras/TargetCamera.cpp",
-        "-Icameras",
+
+        "main.cpp",
+        "../cameras/target.cpp",
+        "../Math Algorithms/matirx.cpp",
+        "../Math Algorithms/3DVector.cpp",
+
+        "-I.",
+        "-I../cameras",
+        "-I../Math Algorithms",
         "-I/opt/homebrew/include",
+
         "-L/opt/homebrew/lib",
         "-lglfw",
+
         "-framework", "OpenGL",
         "-framework", "Cocoa",
         "-framework", "IOKit",
         "-framework", "CoreVideo",
         "-framework", "CoreFoundation",
+
         "-o",
-        "${workspaceFolder}/main"
+        "main"
       ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"],
       "group": {
         "kind": "build",
         "isDefault": true
-      },
-      "problemMatcher": ["$gcc"]
+      }
     }
   ]
 }

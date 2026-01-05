@@ -2,14 +2,15 @@
 #include "../Math Algorithms/matrix.hpp"
 #include "../cameras/target.hpp"
 #define GLFW_INCLUDE_NONE
+#define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl3.h>
 #include <cstdio>
 #include <stdexcept>
 #include <vector>
 #include <cmath>
-
-
+//TODO: Make Grid Nicer (only x,y right now need z too). Draw a Vector based on grid location (x,y,z). Draw another one (make infiite possible vectors)
+//Then Work On Visualizing Operations
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     static bool first_mouse = true;
     static double prevX, prevY;
@@ -44,7 +45,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     }
 }
 
+void key_callback(){
+
+}
+
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
+    (void)(xoffset);
     TargetCamera* cam = static_cast<TargetCamera*>(glfwGetWindowUserPointer(window));
     if(cam){
         cam->radius.x -= yoffset * 0.25; 
@@ -205,6 +211,7 @@ void setMatrixUniform(GLuint program, const char* name, const Matrix& mat) {
 }
 
 static void error_callback(int error, const char* description) {
+    (void) (error);
     fprintf(stderr, "GLFW Error: %s\n", description);
 }
 
@@ -252,18 +259,15 @@ int main() {
         Speed{2.0},
         Sens{0.3}
     );
-    double prevTime = 0.0;
     //Basically we can use our mouse after this I think
     glfwSetWindowUserPointer(window, &cam);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window,  scroll_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     Matrix projection = createPerspectiveMatrix((45.0f * (M_PI / 180.0)), 800.0f / 600.0f, 0.1f, 100.0f);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        double curTime = glfwGetTime();
-        double time = curTime - prevTime;
-        prevTime = curTime;
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Vec3D target = cam.Position + cam.front;

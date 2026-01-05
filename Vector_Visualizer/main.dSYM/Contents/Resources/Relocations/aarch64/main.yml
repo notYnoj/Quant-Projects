@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/ylracisbest/Desktop/quantProjects/Vector_Visualizer/main'
+binary-path:     main
 relocations:     []
 ...
