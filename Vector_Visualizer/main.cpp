@@ -130,7 +130,7 @@ struct GridData {
     GLuint VAO, VBO;
     int vertexCount;
 };
-GridData createGrid(double size = 10.0, int divisions = 10){
+GridData createTrueGrid(double size = 10.0, int divisions = 10){
     std::vector<double> vertices;
     //(x,y,z,r,g,b)
     //we need to draw the endpoints (a -> b)
@@ -138,14 +138,13 @@ GridData createGrid(double size = 10.0, int divisions = 10){
     double halfSize = (size / 2.0);
     double step = size / (divisions * 2.0);  //-halfSize + step * x
     for(int x = 0; x <= (divisions * 2); x++){
-
         for(int y = 0; y <= (divisions * 2); y++){
             bool axis = (x == divisions && y == divisions);
             double xcord = -halfSize + (step * x);
             double ycord = -halfSize + (step * y);
-            double r = axis ? 1.0f : 0.0f;
-            double g = axis ? 1.0f : 0.0f;
-            double b = axis ? 1.0f : 0.0f;
+            double r = axis ? 1.0f : 0.15f;
+            double g = axis ? 1.0f : 0.15f;
+            double b = axis ? 1.0f : 0.15f;
             vertices.push_back(xcord); vertices.push_back(ycord); vertices.push_back(-halfSize);
             vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
             vertices.push_back(xcord); vertices.push_back(ycord); vertices.push_back(halfSize);
@@ -201,30 +200,49 @@ GridData createGrid(double size = 10.0, int divisions = 10){
     return grid;
 }
 
-/*
-GridData createGrid(double size = 10.0, int divisions = 20) {
+/* Plan: Move along X axis create Z max lines. Then Move along y Axis create Z max lines.  */
+GridData createGrid(double size = 10.0, int divisions = 10) {
     std::vector<double> vertices;
-    double step = size / divisions;
+    double step = size / (divisions * 2.0);
     double halfSize = size / 2.0;
-    for (int i = 0; i <= divisions; ++i) {
-        double z = -halfSize + i * step;
-        double r = (i == divisions / 2) ? 1.0f : 0.3f;
-        double g = (i == divisions / 2) ? 1.0f : 0.3f;
-        double b = (i == divisions / 2) ? 1.0f : 0.3f;
-        vertices.push_back(-halfSize); vertices.push_back(0.0f); vertices.push_back(z);
-        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
-        vertices.push_back(halfSize); vertices.push_back(0.0f); vertices.push_back(z);
-        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
-    }
-    for (int i = 0; i <= divisions; ++i) {
+    for (int i = 0; i <= (divisions * 2); i++) {
+        //go along the x and y axis creating vertical lines
         double x = -halfSize + i * step;
-        double r = (i == divisions / 2) ? 1.0f : 0.3f;
-        double g = (i == divisions / 2) ? 1.0f : 0.3f;
-        double b = (i == divisions / 2) ? 1.0f : 0.3f;
+        double y = -halfSize + i * step;
+
+        double r = (i == divisions) ? 1.0f : 0.15f;
+        double g = (i == divisions) ? 1.0f : 0.15f;
+        double b = (i == divisions) ? 1.0f : 0.15f;
+
         vertices.push_back(x); vertices.push_back(0.0f); vertices.push_back(-halfSize);
         vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
         vertices.push_back(x); vertices.push_back(0.0f); vertices.push_back(halfSize);
         vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+
+        vertices.push_back(0.0f); vertices.push_back(y); vertices.push_back(-halfSize);
+        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+        vertices.push_back(0.0f); vertices.push_back(y); vertices.push_back(halfSize);
+        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+    }
+
+    for(int i = 0; i <=  (divisions * 2); i++){
+        //go up and down z axis creating x and y straight lines on axis. so y axis gets y lines and x axis gets other one
+        double z = -halfSize + i * step;
+
+        double r = (i == divisions) ? 1.0f : 0.15f;
+        double g = (i == divisions) ? 1.0f : 0.15f;
+        double b = (i == divisions) ? 1.0f : 0.15f;
+
+        vertices.push_back(0.0f); vertices.push_back(-halfSize); vertices.push_back(z);
+        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+        vertices.push_back(0.0f); vertices.push_back(halfSize); vertices.push_back(z);
+        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+
+        vertices.push_back(-halfSize); vertices.push_back(0.0f); vertices.push_back(z);
+        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+        vertices.push_back(halfSize); vertices.push_back(0.0f); vertices.push_back(z);
+        vertices.push_back(r); vertices.push_back(g); vertices.push_back(b);
+
     }
     
     GridData grid;
@@ -241,7 +259,6 @@ GridData createGrid(double size = 10.0, int divisions = 20) {
     glBindVertexArray(0);
     return grid;
 }
-    */
 
 Matrix createPerspectiveMatrix(double fov, double aspect, double near, double far) {
     Matrix proj(4, 4);
@@ -320,8 +337,10 @@ int main() {
     printf("GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
     glEnable(GL_DEPTH_TEST);
     GLuint shaderProgram = createShaderProgram();
-    
-    GridData grid = createGrid(10.0, 4);
+    std::cout<<"Would you like a true grid or a nice looking one enter 1 for true grid 0 for nice grid"<<std::endl;
+    bool trueGrid;
+    std::cin>>trueGrid;
+    GridData grid = (trueGrid ? createTrueGrid(10.0, 4) : createGrid(10.0, 4));
     TargetCamera cam(
         {0, 0, 0},
         Radius{10.0},
